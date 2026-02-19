@@ -13,8 +13,6 @@
                     │  (Pure Logic)   │    (Math, Transformations)
                     └─────────────────┘
 
-
-
 1. USER INPUT
    ↓
 2. BIN/run.jl (entry point)
@@ -45,11 +43,22 @@
    • Workflow → CLI (result with cache metadata)
    • CLI → User (printed summary)
 
-
-
 Avicenna (top-level)
   ├── Processing (core)
   ├── Workflow (orchestration) → depends on Processing
   ├── REPL (interface) → depends on Workflow
   ├── CLI (interface) → depends on Workflow
   └── Document (interface) → depends on Workflow
+
+src/core/
+├── processor.jl       # existing basic operations
+├── trajectory.jl      # New: trajectory analysis functions
+├── dtw.jl            # New: Dynamic Time Warping calculations
+├── statistics.jl     # New: statistical tests
+└── visualization.jl  # New: data preparation for plots
+
+src/workflows/
+├── main_workflow.jl       # existing demo
+├── trajectory_workflow.jl # New: analyze trajectories
+├── dtw_workflow.jl        # New: pairwise comparisons
+└── batch_workflow.jl      # New: process multiple experiments
