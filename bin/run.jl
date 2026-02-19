@@ -1,0 +1,10 @@
+#!/usr/bin/env julia
+# bin/run.jl
+
+using Pkg
+Pkg.activate(joinpath(@__DIR__, ".."))
+
+include(joinpath(@__DIR__, "..", "src", "Avicenna.jl"))
+using .Avicenna
+
+Avicenna.CLI.main(ARGS)
