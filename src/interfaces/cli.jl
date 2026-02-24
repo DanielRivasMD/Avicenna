@@ -6,7 +6,7 @@ module CLI
 ####################################################################################################
 
 using ..Workflow
-using ..Processing
+using ..Process
 using ArgParse
 
 ####################################################################################################
@@ -32,7 +32,7 @@ function main(args = ARGS)
     Dict("id" => parsed_args["id"], "data" => demo_data, "scale" => parsed_args["scale"])
 
   cache = Workflow.Cache("cache/demo", !parsed_args["no-cache"])
-  result = Workflow.run(Workflow.demo_workflow, config, cache = cache)
+  result = Workflow.run(Workflow.demo, config, cache = cache)
 
   println("Analysis complete:")
   println("  Mean: ", result.stage_outputs["analyze"].summary["mean"])
