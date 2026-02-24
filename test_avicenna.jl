@@ -4,11 +4,11 @@ println("TESTING AVICENNA MODULE HIERARCHY")
 println("="^50)
 
 # First, load just the core and workflow
-include("src/core/processor.jl")
-include("src/workflows/main_workflow.jl")
+include("src/utilities/process.jl")
+include("src/workflows/demo.jl")
 
 println("\n Core and Workflow loaded")
-println("   Core module: ", Processing)
+println("   Core module: ", Process)
 println("   Workflow module: ", Workflow)
 println("   Workflow.Cache exists: ", :Cache in names(Workflow))
 println("   Workflow.demo_workflow exists: ", :demo_workflow in names(Workflow))
@@ -19,7 +19,7 @@ println("\n Can create Cache: ", cache)
 
 # Test running workflow with mock data
 config = Dict("id" => "test", "data" => [1.0, 2.0, 3.0], "scale" => 2.0)
-result = Workflow.run(Workflow.demo_workflow, config, cache = cache)
+result = Workflow.run(Workflow.demo, config, cache = cache)
 println("\n Can run workflow: ", result)
 println("   Result type: ", typeof(result))
 println("   Stage outputs: ", keys(result.stage_outputs))
