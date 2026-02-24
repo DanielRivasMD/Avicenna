@@ -5,19 +5,23 @@ module Avicenna
 
 ####################################################################################################
 
-export Core, Workflow, REPL, CLI, Document
-
-function quick(id::String, scale::Float64 = 1.0)
-  return REPL.run_demo(id, scale)
-end
+export Process
+export Workflow
+export REPL, CLI, Document
 
 ####################################################################################################
 
-include("core/processor.jl")
+include("utilities/process.jl")
 include("workflows/demo.jl")
 include("interfaces/repl.jl")
 include("interfaces/cli.jl")
 include("interfaces/document.jl")
+
+####################################################################################################
+
+function quick(id::String, scale::Float64 = 1.0)
+  return REPL.run_demo(id, scale)
+end
 
 ####################################################################################################
 
