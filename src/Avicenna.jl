@@ -11,11 +11,11 @@ export REPL, CLI, Document
 
 ####################################################################################################
 
-include("utilities/process.jl")
-include("workflows/demo.jl")
-include("interfaces/repl.jl")
-include("interfaces/cli.jl")
-include("interfaces/document.jl")
+include("util/process.jl")
+include("wflow/demo.jl")
+include("inter/repl.jl")
+include("inter/cli.jl")
+include("inter/document.jl")
 
 ####################################################################################################
 

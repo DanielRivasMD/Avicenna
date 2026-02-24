@@ -4,8 +4,8 @@ println("TESTING AVICENNA MODULE HIERARCHY")
 println("="^50)
 
 # First, load just the core and workflow
-include("src/utilities/process.jl")
-include("src/workflows/demo.jl")
+include("src/util/process.jl")
+include("src/wflow/demo.jl")
 
 println("\n Core and Workflow loaded")
 println("   Core module: ", Process)
