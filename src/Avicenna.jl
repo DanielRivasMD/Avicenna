@@ -2,7 +2,7 @@
 module Avicenna
 
 include("core/processor.jl")
-include("workflows/main_workflow.jl")
+include("workflows/demo.jl")
 include("interfaces/repl.jl")
 include("interfaces/cli.jl")
 include("interfaces/document.jl")
