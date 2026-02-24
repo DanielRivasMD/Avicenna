@@ -1,11 +1,11 @@
 ####################################################################################################
 
-# src/workflows/main_workflow.jl
+# src/workflows/demo.jl
 module Workflow
 
 ####################################################################################################
 
-using ..Processing
+using ..Process
 using SHA
 using Serialization
 using Dates
@@ -66,6 +66,7 @@ function run(workflow::WorkflowConfig, config::Dict; cache = Cache("cache", true
     if cache.enabled
       key = cache_key(stage, config, input_hash)
       cached = get_cached(cache, stage, key)
+      @info "cached"
       if !isnothing(cached)
         @info "    → Cache hit"
         outputs[stage.name] = cached
@@ -96,22 +97,21 @@ end
 
 ####################################################################################################
 
-const demo_workflow = WorkflowConfig(
+const demo = WorkflowConfig(
   "demo_analysis",
   [
-    Stage("load", (config, _) -> Processing.load_raw(config["id"], config["data"]), "1.0"),
+    Stage("load", (config, _) -> Process.load_raw(config["id"], config["data"]), "1.0"),
     Stage(
       "transform",
-      (config, prev) ->
-        Processing.transform(prev["load"], Dict("scale" => config["scale"])),
+      (config, prev) -> Process.transform(prev["load"], Dict("scale" => config["scale"])),
       "1.0",
     ),
-    Stage("analyze", (_, prev) -> Processing.analyze(prev["transform"]), "1.0"),
+    Stage("analyze", (_, prev) -> Process.analyze(prev["transform"]), "1.0"),
   ],
   "1.0",
 )
 
-export Cache, Stage, WorkflowConfig, WorkflowResult, run, demo_workflow
+export Cache, Stage, WorkflowConfig, WorkflowResult, run, demo
 
 ####################################################################################################
 
