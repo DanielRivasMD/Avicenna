@@ -39,7 +39,7 @@
    • Returns pure data structures
    ↓
 6. BACK UP THE LAYERS
-   • Core → Workflow (result packaged with provenance)
+   • Core → Workflow (result packaged with origin)
    • Workflow → CLI (result with cache metadata)
    • CLI → User (printed summary)
 

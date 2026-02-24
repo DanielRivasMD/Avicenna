@@ -1,10 +1,16 @@
+####################################################################################################
+
 # src/workflows/main_workflow.jl
 module Workflow
+
+####################################################################################################
 
 using ..Processing
 using SHA
 using Serialization
 using Dates
+
+####################################################################################################
 
 struct Stage
   name::String
@@ -20,7 +26,7 @@ end
 
 struct WorkflowResult
   stage_outputs::Dict{String,Any}
-  provenance::Dict
+  origin::Dict
   cache_hits::Vector{String}
 end
 
@@ -28,6 +34,8 @@ struct Cache
   root_dir::String
   enabled::Bool
 end
+
+####################################################################################################
 
 function cache_key(stage::Stage, config::Dict, input_hash::String)::String
   content = string(stage.name, stage.version, config, input_hash)
@@ -75,7 +83,7 @@ function run(workflow::WorkflowConfig, config::Dict; cache = Cache("cache", true
     end
   end
 
-  provenance = Dict(
+  origin = Dict(
     "workflow" => workflow.name,
     "version" => workflow.version,
     "config" => config,
@@ -83,8 +91,10 @@ function run(workflow::WorkflowConfig, config::Dict; cache = Cache("cache", true
     "cache_hits" => cache_hits,
   )
 
-  return WorkflowResult(outputs, provenance, cache_hits)
+  return WorkflowResult(outputs, origin, cache_hits)
 end
+
+####################################################################################################
 
 const demo_workflow = WorkflowConfig(
   "demo_analysis",
@@ -103,4 +113,8 @@ const demo_workflow = WorkflowConfig(
 
 export Cache, Stage, WorkflowConfig, WorkflowResult, run, demo_workflow
 
+####################################################################################################
+
 end
+
+####################################################################################################

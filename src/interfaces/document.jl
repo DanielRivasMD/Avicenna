@@ -1,8 +1,14 @@
+####################################################################################################
+
 # src/interfaces/document.jl
 module Document
 
+####################################################################################################
+
 using ..Workflow
 using Markdown
+
+####################################################################################################
 
 function generate_report(result)
   output = result.stage_outputs["analyze"]
@@ -14,19 +20,23 @@ function generate_report(result)
   - Mean: $(output.summary["mean"])
   - Data points: $(output.summary["length"])
 
-  ## Provenance
-  - Workflow: $(result.provenance["workflow"])
-  - Version: $(result.provenance["version"])
-  - Time: $(result.provenance["timestamp"])
-  - Cache hits: $(join(result.provenance["cache_hits"], ", "))
+  ## Origin
+  - Workflow: $(result.origin["workflow"])
+  - Version: $(result.origin["version"])
+  - Time: $(result.origin["timestamp"])
+  - Cache hits: $(join(result.origin["cache_hits"], ", "))
 
   ## Configuration
   ```
-  $(result.provenance["config"])
+  $(result.origin["config"])
   ```
   """
 
   return Markdown.parse(md)
 end
 
+####################################################################################################
+
 end
+
+####################################################################################################
