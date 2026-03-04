@@ -1,0 +1,17 @@
+feature enhancements:
+
+Feature						Usefulness	Complexity	Description
+*Parameter validation		5			3			Automatically validate workflow configuration against expected types/ranges.
+*Progress logging			5			2			Built‑in progress bars or detailed logs for each stage (already partially via @info).
+*Parallel stage execution	4			4			Run independent stages concurrently (requires dependency analysis and thread management).
+*Configuration management	5			2			Load config from TOML/YAML with environment variable overrides (already partly in your code).
+*Conditional stage skipping	4			3			Allow stages to be skipped based on config or previous outputs.
+Data format plugins			4			3			Easy integration with CSV, Parquet, Arrow, Excel via a plugin system.
+Workflow visualization		3			4			Generate a DAG of stages (e.g., as a PNG) from a workflow definition.
+Result persistence			3			4			Store results in a database or cloud storage instead of just local cache.
+Web dashboard				3			5			Real‑time monitoring of running workflows (heavy UI work).
+
+
+
+==================================================
+==================================================
