@@ -1,12 +1,13 @@
 ####################################################################################################
 
-# src/inter/repl.jl
-module REPL
+# examples/demo/src/inter/repl.jl
+module DemoREPL
 
 ####################################################################################################
 
-using ..Workflow
-using ..Process
+using Avicenna.Workflow
+using ..DemoWorkflow: demo
+using ..DemoLogic
 
 ####################################################################################################
 
@@ -16,7 +17,7 @@ end
 
 function run_demo(id::String, scale::Float64 = 1.0; no_cache::Bool = false)
   config = Dict("id" => id, "data" => [1.0, 2.0, 3.0, 4.0, 5.0], "scale" => scale)
-  Workflow.run(Workflow.demo, config, cache = get_cache(no_cache))
+  Workflow.run(demo, config, cache = get_cache(no_cache))
 end
 
 function inspect_stage(result, stage::String)
