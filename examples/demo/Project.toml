@@ -1,0 +1,10 @@
+name = "Demo"
+uuid = "800b6dad-fecf-4a5e-a212-22e23cdd7a27"
+version = "0.1.0"
+
+
+[deps]
+ArgParse = "c7e460c6-2fb9-53a9-8c5b-16f535851c63"
+Avicenna = "94ad6e5d-203d-4d53-856b-400d6f23acee"
+Markdown = "d6f4376e-aef5-505a-96c1-9c027394607a"
+Weave = "44d3d7a6-8a23-5bf8-98c5-b353f8df5ec9"
