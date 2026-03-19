@@ -1,15 +1,14 @@
 ####################################################################################################
 
-# src/inter/document.jl
-module Document
+# examples/demo/src/inter/document.jl
+module DemoDocument
 
 ####################################################################################################
 
-using ..Workflow
 using Markdown
 using Weave
-using UUIDs
 using Base.Filesystem: mktempdir
+using Avicenna.Workflow
 
 ####################################################################################################
 
