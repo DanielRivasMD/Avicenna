@@ -207,3 +207,39 @@ runs automatically.
 The framework is also compatible with parallel execution: you could use
 Distributed or Threads to run multiple workflows concurrently, each with its own
 cache instance.
+
+
+```bash
+cd examples/demo
+julia --project -e 'using Pkg; Pkg.instantiate()'
+```
+
+```bash
+julia --project bin/run.jl --id test --scale 2.0
+```
+
+```bash
+julia --project bin/run.jl --id test --scale 2.0 --no-cache
+```
+
+```bash
+julia --project
+```
+
+
+```julia
+include("src/Demo.jl")
+using .Demo
+
+result = DemoREPL.run_demo("test", 2.0)
+DemoREPL.inspect_stage(result, "analyze")
+DemoREPL.clear_cache!()
+```
+
+```julia
+include("src/inter/document.jl")
+using .DemoDocument
+
+html = DemoDocument.report_html(result; outpath="report.html")
+pdf  = DemoDocument.report_pdf(result; outpath="report.pdf")
+```
