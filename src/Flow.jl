@@ -1,7 +1,7 @@
 ####################################################################################################
 
-# src/Workflow.jl
-module Workflow
+# src/Flow.jl
+module Flow
 
 ####################################################################################################
 
@@ -11,7 +11,7 @@ using Dates
 
 ####################################################################################################
 
-export Stage, WorkflowConfig, WorkflowResult, Cache, run
+export Stage, Config, Result, Cache, run
 
 ####################################################################################################
 
@@ -21,13 +21,13 @@ struct Stage
   version::String
 end
 
-struct WorkflowConfig
+struct Config
   name::String
   stages::Vector{Stage}
   version::String
 end
 
-struct WorkflowResult
+struct Result
   stage_outputs::Dict{String,Any}
   origin::Dict
   cache_hits::Vector{String}
@@ -58,14 +58,14 @@ end
 
 ####################################################################################################
 
-function run(workflow::WorkflowConfig, config::Dict; cache = Cache("cache", true))
-  @info "Starting workflow: $(workflow.name)"
+function run(flow::Config, config::Dict; cache = Cache("cache", true))
+  @info "Starting workflow: $(flow.name)"
 
   outputs = Dict{String,Any}()
   cache_hits = String[]
   input_hash = string(hash(config))
 
-  for stage in workflow.stages
+  for stage in flow.stages
     @info "  Stage: $(stage.name)"
 
     if cache.enabled
@@ -89,14 +89,14 @@ function run(workflow::WorkflowConfig, config::Dict; cache = Cache("cache", true
   end
 
   origin = Dict(
-    "workflow" => workflow.name,
-    "version" => workflow.version,
+    "workflow" => flow.name,
+    "version" => flow.version,
     "config" => config,
     "timestamp" => now(),
     "cache_hits" => cache_hits,
   )
 
-  return WorkflowResult(outputs, origin, cache_hits)
+  return Result(outputs, origin, cache_hits)
 end
 
 ####################################################################################################
