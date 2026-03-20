@@ -14,7 +14,7 @@ include("inter/document.jl")
 ####################################################################################################
 
 # Re-export used symbols
-export DemoLogic, DemoWorkflow, DemoCLI, DemoREPL, DemoDocument
+export DemoCore, DemoWorkflow, DemoCLI, DemoREPL, DemoDocument
 
 ####################################################################################################
 

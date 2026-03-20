@@ -7,7 +7,7 @@ module DemoREPL
 
 using Avicenna.Workflow
 using ..DemoWorkflow: demo
-using ..DemoLogic
+using ..DemoCore
 
 ####################################################################################################
 
