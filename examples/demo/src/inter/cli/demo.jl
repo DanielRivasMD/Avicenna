@@ -1,13 +1,13 @@
 ####################################################################################################
 
-# examples/demo/src/inter/cli.jl
+# examples/demo/src/inter/cli/demo.jl
 module DemoCLI
 
 ####################################################################################################
 
 using ArgParse
-using Avicenna.Workflow
-using ..DemoWorkflow: demo
+using Avicenna.Flow
+using ..DemoFlow: demo
 
 ####################################################################################################
 
@@ -31,8 +31,8 @@ function main(args = ARGS)
   config =
     Dict("id" => parsed_args["id"], "data" => demo_data, "scale" => parsed_args["scale"])
 
-  cache = Workflow.Cache("cache/demo", !parsed_args["no-cache"])
-  result = Workflow.run(demo, config, cache = cache)
+  cache = Flow.Cache("cache/demo", !parsed_args["no-cache"])
+  result = Flow.run(demo, config, cache = cache)
 
   println("Analysis complete:")
   println("  Mean: ", result.stage_outputs["analyze"].summary["mean"])
