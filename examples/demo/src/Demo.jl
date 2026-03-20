@@ -5,16 +5,16 @@ module Demo
 
 ####################################################################################################
 
-include("util/logic.jl")
-include("wflow/demo.jl")
-include("inter/cli.jl")
-include("inter/repl.jl")
-include("inter/document.jl")
+include("util/demo.jl")
+include("flow/demo.jl")
+include("inter/cli/demo.jl")
+include("inter/repl/demo.jl")
+include("inter/doc/demo.jl")
 
 ####################################################################################################
 
 # Re-export used symbols
-export DemoCore, DemoWorkflow, DemoCLI, DemoREPL, DemoDocument
+export DemoCore, DemoFlow, DemoCLI, DemoREPL, DemoDoc
 
 ####################################################################################################
 
