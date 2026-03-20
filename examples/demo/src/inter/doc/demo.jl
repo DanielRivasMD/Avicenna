@@ -1,14 +1,14 @@
 ####################################################################################################
 
-# examples/demo/src/inter/document.jl
-module DemoDocument
+# examples/demo/src/inter/doc/demo.jl
+module DemoDoc
 
 ####################################################################################################
 
 using Markdown
 using Weave
 using Base.Filesystem: mktempdir
-using Avicenna.Workflow
+using Avicenna.Flow
 
 ####################################################################################################
 
