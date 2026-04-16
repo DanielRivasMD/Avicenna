@@ -1,3 +1,8 @@
+create a cli interphase that wrap module executables such as: avicenna demo => julia --project bin/demo.jl
+this cli interphase should offer tab completion for modules declare at src & bin/demo.jl should not really exist, it should virtual
+
+
+
 feature enhancements:
 
 Feature						Usefulness	Complexity	Description
