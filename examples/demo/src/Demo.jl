@@ -1,19 +1,17 @@
 ####################################################################################################
 
-# examples/demo/src/Demo.jl
 module Demo
 
 ####################################################################################################
 
-include("util/demo.jl")
-include("flow/demo.jl")
-include("inter/cli/demo.jl")
-include("inter/repl/demo.jl")
-include("inter/doc/demo.jl")
+include("util/util_demo.jl")
+include("flow/flow_demo.jl")
+include("inter/cli/cli_demo.jl")
+include("inter/repl/repl_demo.jl")
+include("inter/doc/doc_demo.jl")
 
 ####################################################################################################
 
-# Re-export used symbols
 export DemoCore, DemoFlow, DemoCLI, DemoREPL, DemoDoc
 
 ####################################################################################################
