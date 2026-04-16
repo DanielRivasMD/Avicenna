@@ -1,17 +1,16 @@
 ####################################################################################################
 
-# examples/demo/src/inter/cli/demo.jl
 module DemoCLI
 
 ####################################################################################################
 
 using ArgParse
-using Avicenna.Flow
+using Avicenna.Flow: Cache, run
 using ..DemoFlow: demo
 
 ####################################################################################################
 
-function main(args = ARGS)
+function run_demo(args = ARGS)
   s = ArgParseSettings()
   @add_arg_table! s begin
     "--id"
@@ -39,12 +38,6 @@ function main(args = ARGS)
   println("  Cache hits: ", join(result.cache_hits, ", "))
 
   return 0
-end
-
-####################################################################################################
-
-if abspath(PROGRAM_FILE) == @__FILE__
-  exit(main())
 end
 
 ####################################################################################################
