@@ -1,11 +1,10 @@
 ####################################################################################################
 
-# examples/demo/src/inter/repl/demo.jl
 module DemoREPL
 
 ####################################################################################################
 
-using Avicenna.Flow
+using Avicenna.Flow: Cache, run
 using ..DemoFlow: demo
 using ..DemoCore
 
