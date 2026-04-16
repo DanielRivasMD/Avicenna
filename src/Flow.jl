@@ -72,14 +72,14 @@ function run(flow::Config, config::Dict; cache = Cache("cache", true))
       key = cache_key(stage, config, input_hash)
       cached = get_cached(cache, stage, key)
       if !isnothing(cached)
-        @info "    → Cache hit"
+        @info "    → Cache found"
         outputs[stage.name] = cached
         push!(cache_hits, stage.name)
         continue
       end
     end
 
-    @info "    → Computing fresh"
+    @info "    → Computing de novo"
     result = stage.process(config, outputs)
     outputs[stage.name] = result
 
