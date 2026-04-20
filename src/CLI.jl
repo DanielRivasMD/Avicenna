@@ -24,61 +24,54 @@ function extract_module_name(filepath::String)::Union{String,Nothing}
   return nothing
 end
 
-function root_module_from_cli_file(filename::String)::Union{String,Nothing}
-  stem = splitext(filename)[1]          # e.g., "cli_deamination"
-  if startswith(stem, "cli_")
-    root_lower = stem[5:end]          # remove "cli_"
-    # Capitalize first letter, keep rest as is
-    root_cap = uppercasefirst(root_lower)
-    return root_cap
-  end
-  return nothing  # not match expected pattern
+function is_valid_cli_file(filepath::String)::Bool
+  content = read(filepath, String)
+  has_run = contains(content, r"function\s+run\b")
+  has_export = contains(content, r"export\s+.*\brun\b")
+  return has_run && has_export
 end
 
 function find_available_commands()
-  commands = Tuple{String,String,String}[]
-  cli_dir = joinpath(pwd(), "src", "inter", "cli")
-  isdir(cli_dir) || return commands
+  if !isfile(joinpath(pwd(), "Project.toml"))
+    @warn "No Project.toml found – not a Julia project? Skipping command discovery."
+    return Tuple{String,String,String,String}[]
+  end
 
+  src_dir = joinpath(pwd(), "src")
+  cli_dir = joinpath(src_dir, "inter", "cli")
+  isdir(src_dir) || return Tuple{String,String,String,String}[]
+  isdir(cli_dir) || return Tuple{String,String,String,String}[]
+
+  # root modules
+  root_map = Dict{String,Tuple{String,String}}()
+  for file in readdir(src_dir)
+    endswith(file, ".jl") || continue
+    filepath = joinpath(src_dir, file)
+    mod_name = extract_module_name(filepath)
+    mod_name === nothing && continue
+    command = lowercase(splitext(file)[1])
+    if haskey(root_map, command)
+      @warn "Duplicate command '$command' from $(root_map[command][2]) and $filepath"
+    else
+      root_map[mod_name] = (command, filepath)
+    end
+  end
+
+  # cli modules
+  commands = Tuple{String,String,String,String}[]
   for file in readdir(cli_dir)
     endswith(file, ".jl") || continue
+    filepath = joinpath(cli_dir, file)
+    is_valid_cli_file(filepath) || continue
+    cli_mod_name = extract_module_name(filepath)
+    cli_mod_name === nothing && continue
 
-    # Expected pattern: cli_<something>.jl
-    if !startswith(file, "cli_")
-      continue
-    end
-
-    # Derive the root file name (e.g., "cli_deamination.jl" → "Deamination.jl")
-    stem = splitext(file)[1]          # "cli_deamination"
-    root_stem = uppercasefirst(stem[5:end])   # "Deamination"
-    root_file = joinpath(pwd(), "src", "$root_stem.jl")
-
-    # Check if root file exists
-    isfile(root_file) || continue
-
-    # Extract actual module name from root file (e.g., "DA")
-    root_mod_name = extract_module_name(root_file)
-    root_mod_name === nothing && continue
-
-    # Subcommand = lowercase root stem (e.g., "deamination")
-    subcmd = lowercase(root_stem)
-
-    # Check CLI file for its module and run/export
-    cli_filepath = joinpath(cli_dir, file)
-    content = read(cli_filepath, String)
-
-    mod_match = match(r"module\s+(\w+)", content)
-    mod_match === nothing && continue
-    cli_mod_name = mod_match.captures[1]
-
-    has_run_func = contains(content, r"function\s+run\b")
-    has_export_run = contains(content, r"export\s+.*\brun\b")
-
-    if has_run_func && has_export_run
-      push!(commands, (subcmd, root_mod_name, cli_mod_name))
-      # @info "Found: $subcmd -> root module $root_mod_name, CLI $cli_mod_name"
+    root_mod_name = cli_mod_name[1:2]
+    if haskey(root_map, root_mod_name)
+      command, root_file = root_map[root_mod_name]
+      push!(commands, (command, root_mod_name, cli_mod_name, root_file))
     else
-      @warn "Skipping $file: missing run or export run inside $cli_mod_name"
+      @warn "No root module found for submodule '$cli_mod_name' (from CLI file $file)"
     end
   end
   return commands
@@ -170,15 +163,13 @@ function dispatcher(args::Vector{String})
   cmd_args = remaining[2:end]
 
   commands = find_available_commands()
-  cmd_map =
-    Dict(cmd => (mod_name, cli_mod_name) for (cmd, mod_name, cli_mod_name) in commands)
+  cmd_map = Dict(
+    cmd => (root_mod_name, cli_mod_name, root_file) for
+    (cmd, root_mod_name, cli_mod_name, root_file) in commands
+  )
 
   if haskey(cmd_map, subcommand)
-    root_mod_name, cli_mod_name = cmd_map[subcommand]
-    root_file = joinpath(pwd(), "src", "$(uppercasefirst(subcommand)).jl")
-    if !isfile(root_file)
-      error("Root module file not found: $root_file")
-    end
+    root_mod_name, cli_mod_name, root_file = cmd_map[subcommand]
 
     if !isdefined(Main, Symbol(root_mod_name))
       Base.include(Main, root_file)
