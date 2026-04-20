@@ -79,6 +79,8 @@ end
 
 ####################################################################################################
 
+# TODO: add flags to documentation
+# TODO: potentially generate flag completion for target modules instead of avicenna flgas
 function generate_zsh_completion()
   return """
   #compdef avicenna
@@ -120,6 +122,7 @@ function dispatcher(args::Vector{String})
     end
   end
 
+  # TODO: add author & version to help
   if doc
     println("Avicenna – Unified CLI for analysis modules")
     println()
