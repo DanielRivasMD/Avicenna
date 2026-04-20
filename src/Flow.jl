@@ -11,7 +11,7 @@ using Dates
 
 ####################################################################################################
 
-export Stage, Config, Result, Cache, run
+export Stage, Config, Result, Cache, launch
 
 ####################################################################################################
 
@@ -58,7 +58,7 @@ end
 
 ####################################################################################################
 
-function run(flow::Config, config::Dict; cache = Cache("cache", true))
+function launch(flow::Config, config::Dict; cache = Cache("cache", true))
   @info "Starting workflow: $(flow.name)"
 
   outputs = Dict{String,Any}()
