@@ -33,7 +33,7 @@ end
 
 function find_available_commands()
   if !isfile(joinpath(pwd(), "Project.toml"))
-    @warn "No Project.toml found – not a Julia project? Skipping command discovery."
+    @warn "\n\tProject.toml not found\n\tPotentially not Julia project\n\tSkipping command discovery"
     return Tuple{String,String,String,String}[]
   end
 
@@ -81,6 +81,22 @@ end
 
 # TODO: add flags to documentation
 # TODO: potentially generate flag completion for target modules instead of avicenna flgas
+# TODO: add author & version to help
+function print_help()
+  println("Avicenna - Unified CLI for analysis modules")
+  println()
+  println("Usage: avicenna [options] <command> [args...]")
+  println()
+  println("Options:")
+  println("  --list              List available commands")
+  println("  --completion SHELL  Generate shell completion script")
+  println()
+  println("Available commands:")
+  for (cmd, _, _) in find_available_commands()
+    println("  $cmd")
+  end
+end
+
 function generate_zsh_completion()
   return """
   #compdef avicenna
@@ -96,7 +112,6 @@ end
 ####################################################################################################
 
 function dispatcher(args::Vector{String})
-  doc = false
   list = false
   completion = ""
   remaining = String[]
@@ -104,15 +119,12 @@ function dispatcher(args::Vector{String})
   i = 1
   while i <= length(args)
     arg = args[i]
-    if arg == "--doc"
-      doc = true
-      i += 1
-    elseif arg == "--list"
+    if arg == "--list"
       list = true
       i += 1
     elseif arg == "--completion"
       if i + 1 > length(args)
-        error("--completion requires an argument (zsh)")
+        error("--completion requires an argument")
       end
       completion = args[i+1]
       i += 2
@@ -120,24 +132,6 @@ function dispatcher(args::Vector{String})
       push!(remaining, arg)
       i += 1
     end
-  end
-
-  # TODO: add author & version to help
-  if doc
-    println("Avicenna – Unified CLI for analysis modules")
-    println()
-    println("Usage: avicenna [options] <command> [args...]")
-    println()
-    println("Options:")
-    println("  --doc               Show this help")
-    println("  --list              List available commands")
-    println("  --completion SHELL  Generate completion script (zsh)")
-    println()
-    println("Avaliable command modules")
-    for (cmd, _, _) in find_available_commands()
-      println("  $cmd")
-    end
-    return 0
   end
 
   if list
@@ -158,7 +152,7 @@ function dispatcher(args::Vector{String})
   end
 
   if isempty(remaining)
-    dispatcher(["--doc"])
+    print_help()
     return 0
   end
 
