@@ -34,13 +34,13 @@ end
 function find_available_commands()
   if !isfile(joinpath(pwd(), "Project.toml"))
     @warn "\n\tProject.toml not found\n\tPotentially not Julia project\n\tSkipping command discovery"
-    return Tuple{String,String,String,String}[]
+    return Tuple{String,String,String,String,String}[]
   end
 
   src_dir = joinpath(pwd(), "src")
   cli_dir = joinpath(src_dir, "inter", "cli")
-  isdir(src_dir) || return Tuple{String,String,String,String}[]
-  isdir(cli_dir) || return Tuple{String,String,String,String}[]
+  isdir(src_dir) || return Tuple{String,String,String,String,String}[]
+  isdir(cli_dir) || return Tuple{String,String,String,String,String}[]
 
   # root modules
   root_map = Dict{String,Tuple{String,String}}()
@@ -58,7 +58,7 @@ function find_available_commands()
   end
 
   # cli modules
-  commands = Tuple{String,String,String,String}[]
+  commands = Tuple{String,String,String,String,String}[]
   for file in readdir(cli_dir)
     endswith(file, ".jl") || continue
     filepath = joinpath(cli_dir, file)
@@ -69,7 +69,7 @@ function find_available_commands()
     root_mod_name = cli_mod_name[1:2]
     if haskey(root_map, root_mod_name)
       command, root_file = root_map[root_mod_name]
-      push!(commands, (command, root_mod_name, cli_mod_name, root_file))
+      push!(commands, (command, root_mod_name, cli_mod_name, root_file, filepath))
     else
       @warn "No root module found for submodule '$cli_mod_name' (from CLI file $file)"
     end
@@ -79,9 +79,34 @@ end
 
 ####################################################################################################
 
-# TODO: add flags to documentation
-# TODO: potentially generate flag completion for target modules instead of avicenna flgas
-# TODO: add author & version to help
+function extract_flags_from_cli_file(filepath::String)::Vector{String}
+  content = read(filepath, String)
+  flags = String[]
+
+  start_idx = findfirst(r"@add_arg_table!\s+\w+\s+begin", content)
+  start_idx === nothing && return flags
+
+  in_block = false
+  for line in split(content, '\n')
+    if !in_block && occursin(r"@add_arg_table!\s+\w+\s+begin", line)
+      in_block = true
+      continue
+    end
+    if in_block
+      if occursin(r"\bend\b", line)
+        break
+      end
+      m = match(r"--([a-zA-Z][a-zA-Z0-9_-]*)", line)
+      if m !== nothing
+        push!(flags, "--" * m.captures[1])
+      end
+    end
+  end
+  return flags
+end
+
+####################################################################################################
+
 function print_help()
   println("Avicenna - Unified CLI for analysis modules")
   println()
@@ -92,7 +117,7 @@ function print_help()
   println("  --completion SHELL  Generate shell completion script")
   println()
   println("Available commands:")
-  for (cmd, _, _) in find_available_commands()
+  for (cmd, _, _, _, _) in find_available_commands()
     println("  $cmd")
   end
 end
@@ -103,11 +128,14 @@ function generate_zsh_completion()
   _avicenna() {
       local -a commands
       if (( CURRENT == 2 )); then
-          # Completing the command (first argument)
           commands=(\${(f)\"\$(avicenna --list 2>/dev/null)\"})
           _describe 'command' commands
+      elif [[ "\$words[CURRENT]" == --* ]]; then
+          local cmd=\$words[2]
+          local -a flags
+          flags=(\${(f)\"\$(avicenna --_completion_flags \$cmd 2>/dev/null)\"})
+          _describe 'flag' flags
       else
-          # After the command, fall back to default file/dir completion
           _default
       fi
   }
@@ -118,6 +146,21 @@ end
 ####################################################################################################
 
 function dispatcher(args::Vector{String})
+  if length(args) >= 2 && args[1] == "--_completion_flags"
+    subcommand = args[2]
+    commands = find_available_commands()
+    for (cmd, _, _, _, cli_file) in commands
+      if cmd == subcommand
+        flags = extract_flags_from_cli_file(cli_file)
+        for f in flags
+          println(f)
+        end
+        return 0
+      end
+    end
+    return 1
+  end
+
   list = false
   completion = ""
   remaining = String[]
@@ -141,7 +184,7 @@ function dispatcher(args::Vector{String})
   end
 
   if list
-    for (cmd, _, _) in find_available_commands()
+    for (cmd, _, _, _, _) in find_available_commands()
       println(cmd)
     end
     return 0
@@ -168,7 +211,7 @@ function dispatcher(args::Vector{String})
   commands = find_available_commands()
   cmd_map = Dict(
     cmd => (root_mod_name, cli_mod_name, root_file) for
-    (cmd, root_mod_name, cli_mod_name, root_file) in commands
+    (cmd, root_mod_name, cli_mod_name, root_file, _) in commands
   )
 
   if haskey(cmd_map, subcommand)
