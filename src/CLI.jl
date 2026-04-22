@@ -104,9 +104,22 @@ function extract_flags_from_cli_file(filepath::String)::Vector{String}
       if m !== nothing
         flag = "--" * m.captures[1]
         help_text = ""
-        if occursin(r"help\s*=\s*\"([^\"]*)\"", line)
-          help_match = match(r"help\s*=\s*\"([^\"]*)\"", line)
-          help_text = help_match !== nothing ? help_match.captures[1] : ""
+        default_val = ""
+
+        function extract_value(text, key)
+          patterns = [Regex("$key\\s*=\\s*\"([^\"]*)\""), Regex("$key\\s*=\\s*([^,\\n]*)")]
+          for pat in patterns
+            m_val = match(pat, text)
+            if m_val !== nothing
+              return strip(m_val.captures[1])
+            end
+          end
+          return ""
+        end
+
+        if occursin(r"help\s*=", line) || occursin(r"default\s*=", line)
+          help_text = extract_value(line, "help")
+          default_val = extract_value(line, "default")
         else
           j = i + 1
           while j <= length(lines)
@@ -114,16 +127,27 @@ function extract_flags_from_cli_file(filepath::String)::Vector{String}
             if occursin(r"^\s*--", next_line) || occursin(r"\bend\b", next_line)
               break
             end
-            if occursin(r"help\s*=\s*\"([^\"]*)\"", next_line)
-              help_match = match(r"help\s*=\s*\"([^\"]*)\"", next_line)
-              help_text = help_match !== nothing ? help_match.captures[1] : ""
-              break
+            if occursin(r"help\s*=", next_line) && isempty(help_text)
+              help_text = extract_value(next_line, "help")
+            end
+            if occursin(r"default\s*=", next_line) && isempty(default_val)
+              default_val = extract_value(next_line, "default")
             end
             j += 1
           end
         end
-        if !isempty(help_text)
-          push!(flags_with_desc, "$flag:$help_text")
+
+        desc = help_text
+        if !isempty(default_val)
+          if !isempty(desc)
+            desc *= " - default: $default_val"
+          else
+            desc = "default: $default_val"
+          end
+        end
+
+        if !isempty(desc)
+          push!(flags_with_desc, "$flag:$desc")
         else
           push!(flags_with_desc, flag)
         end
