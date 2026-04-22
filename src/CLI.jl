@@ -102,8 +102,14 @@ function generate_zsh_completion()
   #compdef avicenna
   _avicenna() {
       local -a commands
-      commands=(\${(f)\"\$(avicenna --list 2>/dev/null)\"})
-      _describe 'command' commands
+      if (( CURRENT == 2 )); then
+          # Completing the command (first argument)
+          commands=(\${(f)\"\$(avicenna --list 2>/dev/null)\"})
+          _describe 'command' commands
+      else
+          # After the command, fall back to default file/dir completion
+          _default
+      fi
   }
   compdef _avicenna avicenna
   """
