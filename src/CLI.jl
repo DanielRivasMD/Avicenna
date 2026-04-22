@@ -35,54 +35,6 @@ function is_valid_cli_file(filepath::String)::Bool
   return has_run && has_export
 end
 
-function find_available_commands()
-  if !isfile(joinpath(pwd(), "Project.toml"))
-    @warn "\n\tProject.toml not found\n\tPotentially not Julia project\n\tSkipping command discovery"
-    return Tuple{String,String,String,String,String}[]
-  end
-
-  src_dir = joinpath(pwd(), "src")
-  cli_dir = joinpath(src_dir, "inter", "cli")
-  isdir(src_dir) || return Tuple{String,String,String,String,String}[]
-  isdir(cli_dir) || return Tuple{String,String,String,String,String}[]
-
-  # root modules
-  root_map = Dict{String,Tuple{String,String}}()
-  for file in readdir(src_dir)
-    endswith(file, ".jl") || continue
-    filepath = joinpath(src_dir, file)
-    mod_name = extract_module_name(filepath)
-    mod_name === nothing && continue
-    command = lowercase(splitext(file)[1])
-    if haskey(root_map, command)
-      @warn "Duplicate command '$command' from $(root_map[command][2]) and $filepath"
-    else
-      root_map[mod_name] = (command, filepath)
-    end
-  end
-
-  # cli modules
-  commands = Tuple{String,String,String,String,String}[]
-  for file in readdir(cli_dir)
-    endswith(file, ".jl") || continue
-    filepath = joinpath(cli_dir, file)
-    is_valid_cli_file(filepath) || continue
-    cli_mod_name = extract_module_name(filepath)
-    cli_mod_name === nothing && continue
-
-    root_mod_name = cli_mod_name[1:2]
-    if haskey(root_map, root_mod_name)
-      command, root_file = root_map[root_mod_name]
-      push!(commands, (command, root_mod_name, cli_mod_name, root_file, filepath))
-    else
-      @warn "No root module found for submodule '$cli_mod_name' (from CLI file $file)"
-    end
-  end
-  return commands
-end
-
-####################################################################################################
-
 function extract_flags_from_cli_file(filepath::String)::Vector{String}
   content = read(filepath, String)
   flags_with_desc = String[]
@@ -164,6 +116,54 @@ end
 
 ####################################################################################################
 
+function find_available_commands()
+  if !isfile(joinpath(pwd(), "Project.toml"))
+    @warn "\n\tProject.toml not found\n\tPotentially not Julia project\n\tSkipping command discovery"
+    return Tuple{String,String,String,String,String}[]
+  end
+
+  src_dir = joinpath(pwd(), "src")
+  cli_dir = joinpath(src_dir, "inter", "cli")
+  isdir(src_dir) || return Tuple{String,String,String,String,String}[]
+  isdir(cli_dir) || return Tuple{String,String,String,String,String}[]
+
+  # root modules
+  root_map = Dict{String,Tuple{String,String}}()
+  for file in readdir(src_dir)
+    endswith(file, ".jl") || continue
+    filepath = joinpath(src_dir, file)
+    mod_name = extract_module_name(filepath)
+    mod_name === nothing && continue
+    command = lowercase(splitext(file)[1])
+    if haskey(root_map, command)
+      @warn "Duplicate command '$command' from $(root_map[command][2]) and $filepath"
+    else
+      root_map[mod_name] = (command, filepath)
+    end
+  end
+
+  # cli modules
+  commands = Tuple{String,String,String,String,String}[]
+  for file in readdir(cli_dir)
+    endswith(file, ".jl") || continue
+    filepath = joinpath(cli_dir, file)
+    is_valid_cli_file(filepath) || continue
+    cli_mod_name = extract_module_name(filepath)
+    cli_mod_name === nothing && continue
+
+    root_mod_name = cli_mod_name[1:2]
+    if haskey(root_map, root_mod_name)
+      command, root_file = root_map[root_mod_name]
+      push!(commands, (command, root_mod_name, cli_mod_name, root_file, filepath))
+    else
+      @warn "No root module found for submodule '$cli_mod_name' (from CLI file $file)"
+    end
+  end
+  return commands
+end
+
+####################################################################################################
+
 function print_help()
   # ANSI escape codes
   bold = "\e[1m"
@@ -213,6 +213,7 @@ function print_help()
   println()
   println("Options:")
   println("  --list              List available commands")
+  println("  --cache             Remove local cache")
   println("  --completion SHELL  Generate shell completion script")
   println()
   println(bold * "Available commands:" * reset)
@@ -246,6 +247,25 @@ end
 
 ####################################################################################################
 
+function clean_cache()
+  cache_dir = joinpath(pwd(), "cache")
+  if !isdir(cache_dir)
+    println("No cache directory found at $cache_dir")
+    return 0
+  end
+
+  try
+    rm(cache_dir; recursive = true, force = true)
+    println("Cache cleared: $cache_dir")
+    return 0
+  catch e
+    @error "Failed to clear cache" exception = e
+    return 1
+  end
+end
+
+####################################################################################################
+
 function dispatcher(args::Vector{String})
   if length(args) >= 2 && args[1] == "--_completion_flags"
     subcommand = args[2]
@@ -264,6 +284,7 @@ function dispatcher(args::Vector{String})
 
   list = false
   completion = ""
+  cache = false
   remaining = String[]
 
   i = 1
@@ -278,10 +299,17 @@ function dispatcher(args::Vector{String})
       end
       completion = args[i+1]
       i += 2
+    elseif arg == "--cache"
+      cache = true
+      i += 1
     else
       push!(remaining, arg)
       i += 1
     end
+  end
+
+  if cache
+    return clean_cache()
   end
 
   if list
