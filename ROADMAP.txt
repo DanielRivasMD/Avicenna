@@ -1,5 +1,3 @@
-create a command to remove all cache
-
 feature enhancements:
 
 Feature						Usefulness	Complexity	Description
@@ -16,8 +14,4 @@ Web dashboard				3			5			Real‑time monitoring of running workflows (heavy UI w
 
 
 ==================================================
-src/CLI.jl
-  line 82     TODO   add flags to documentation
-  line 83     TODO   potentially generate flag completion for target modules instead of avicenna flgas
-  line 84     TODO   add author & version to help
 ==================================================
