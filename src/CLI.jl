@@ -81,15 +81,19 @@ end
 
 function extract_flags_from_cli_file(filepath::String)::Vector{String}
   content = read(filepath, String)
-  flags = String[]
+  flags_with_desc = String[]
 
   start_idx = findfirst(r"@add_arg_table!\s+\w+\s+begin", content)
-  start_idx === nothing && return flags
+  start_idx === nothing && return flags_with_desc
 
   in_block = false
-  for line in split(content, '\n')
+  lines = split(content, '\n')
+  i = 1
+  while i <= length(lines)
+    line = lines[i]
     if !in_block && occursin(r"@add_arg_table!\s+\w+\s+begin", line)
       in_block = true
+      i += 1
       continue
     end
     if in_block
@@ -98,11 +102,36 @@ function extract_flags_from_cli_file(filepath::String)::Vector{String}
       end
       m = match(r"--([a-zA-Z][a-zA-Z0-9_-]*)", line)
       if m !== nothing
-        push!(flags, "--" * m.captures[1])
+        flag = "--" * m.captures[1]
+        help_text = ""
+        if occursin(r"help\s*=\s*\"([^\"]*)\"", line)
+          help_match = match(r"help\s*=\s*\"([^\"]*)\"", line)
+          help_text = help_match !== nothing ? help_match.captures[1] : ""
+        else
+          j = i + 1
+          while j <= length(lines)
+            next_line = lines[j]
+            if occursin(r"^\s*--", next_line) || occursin(r"\bend\b", next_line)
+              break
+            end
+            if occursin(r"help\s*=\s*\"([^\"]*)\"", next_line)
+              help_match = match(r"help\s*=\s*\"([^\"]*)\"", next_line)
+              help_text = help_match !== nothing ? help_match.captures[1] : ""
+              break
+            end
+            j += 1
+          end
+        end
+        if !isempty(help_text)
+          push!(flags_with_desc, "$flag:$help_text")
+        else
+          push!(flags_with_desc, flag)
+        end
       end
     end
+    i += 1
   end
-  return flags
+  return flags_with_desc
 end
 
 ####################################################################################################
@@ -134,7 +163,7 @@ function generate_zsh_completion()
           local cmd=\$words[2]
           local -a flags
           flags=(\${(f)\"\$(avicenna --_completion_flags \$cmd 2>/dev/null)\"})
-          _describe 'flag' flags
+          _describe -t flags 'flag' flags
       else
           _default
       fi
