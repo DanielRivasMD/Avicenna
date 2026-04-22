@@ -5,6 +5,10 @@ module CLI
 
 ####################################################################################################
 
+using TOML
+
+####################################################################################################
+
 export dispatcher
 
 ####################################################################################################
@@ -161,7 +165,49 @@ end
 ####################################################################################################
 
 function print_help()
-  println("Avicenna - Unified CLI for analysis modules")
+  # ANSI escape codes
+  bold = "\e[1m"
+  italic = "\e[3m"
+  dim = "\e[2m"
+  green = "\e[32m"
+  cyan = "\e[36m"
+  reset = "\e[0m"
+
+  avicenna_root = dirname(@__DIR__)
+  project_file = joinpath(avicenna_root, "Project.toml")
+
+  author_name = ""
+  author_email = ""
+  pkg_name = ""
+  pkg_version = ""
+
+  if isfile(project_file)
+    try
+      data = TOML.parsefile(project_file)
+      pkg_version = get(data, "version", "")
+      pkg_name = get(data, "name", "")
+      authors = get(data, "authors", [])
+      if !isempty(authors)
+        full_author = authors[1]
+        m = match(r"^(.*?)\s*<([^>]+)>", full_author)
+        if m !== nothing
+          author_name = strip(m.captures[1])
+          author_email = m.captures[2]
+        else
+          author_name = full_author
+        end
+      end
+    catch
+    end
+  end
+
+  desc = "Orchestrate scalable scholar analysis"
+  println(
+    bold * green * author_name * reset * " " * dim * italic * "<$author_email>" * reset,
+  )
+  println(lowercase(pkg_name) * " " * bold * "v" * pkg_version * reset)
+  println()
+  println(dim * cyan * desc * reset)
   println()
   println("Usage: avicenna [options] <command> [args...]")
   println()
@@ -169,11 +215,13 @@ function print_help()
   println("  --list              List available commands")
   println("  --completion SHELL  Generate shell completion script")
   println()
-  println("Available commands:")
+  println(bold * "Available commands:" * reset)
   for (cmd, _, _, _, _) in find_available_commands()
-    println("  $cmd")
+    println("  ", cmd)
   end
 end
+
+####################################################################################################
 
 function generate_zsh_completion()
   return """
@@ -282,7 +330,7 @@ function dispatcher(args::Vector{String})
     return result isa Integer ? result : 0
   else
     println("Unknown command: $subcommand")
-    println("Available commands: ", join(keys(cmd_map), ", "))
+    println("Available commands:\n  ", join(keys(cmd_map), "\n  "))
     return 1
   end
 end
