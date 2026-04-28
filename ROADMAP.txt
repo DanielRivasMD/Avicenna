@@ -13,5 +13,27 @@ Web dashboard				3			5			Real‑time monitoring of running workflows (heavy UI w
 
 
 
+usefulness:
+- easy adoption
+- accelerated iteration with caching
+- zero-config command discovery
+
+strengths:
+- self-contained cli discovery
+- modularity separation (CLI & Flow)
+- builtin caching
+- shell completion
+- minimal dependencies
+
+weaknesses:
+- fragile & undocummented command discovery
+- fragie flag extraction
+- namespace pollution & navigation
+- unstable hashing
+- error handling & user-friendly reporting
+- lack of help command
+
+
+
 ==================================================
 ==================================================
