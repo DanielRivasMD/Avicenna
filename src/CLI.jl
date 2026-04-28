@@ -28,6 +28,19 @@ function extract_module_name(filepath::String)::Union{String,Nothing}
   return nothing
 end
 
+####################################################################################################
+
+function extract_module_docstring(filepath::String)::String
+  content = read(filepath, String)
+  m = match(r"\"\"\"\s*\n(.*?)\n\s*\"\"\"\s*\n\s*module\s"ms, content)
+  if m !== nothing
+    return strip(m.captures[1])
+  end
+  return ""
+end
+
+####################################################################################################
+
 function is_valid_cli_file(filepath::String)::Bool
   content = read(filepath, String)
   has_run = contains(content, r"function\s+run\b")
@@ -164,6 +177,84 @@ end
 
 ####################################################################################################
 
+function print_subcommand_help(command::String, root_file::String, flags::Vector{String})
+  # ANSI escape codes
+  bold = "\e[1m"
+  italic = "\e[3m"
+  dim = "\e[2m"
+  green = "\e[32m"
+  cyan = "\e[36m"
+  reset = "\e[0m"
+
+  project_file = joinpath(pwd(), "Project.toml")
+
+  author_name = ""
+  author_email = ""
+  pkg_name = ""
+  pkg_version = ""
+
+  if isfile(project_file)
+    try
+      data = TOML.parsefile(project_file)
+      pkg_version = get(data, "version", "")
+      pkg_name = get(data, "name", "")
+      authors = get(data, "authors", [])
+      if !isempty(authors)
+        full_author = authors[1]
+        m = match(r"^(.*?)\s*<([^>]+)>", full_author)
+        if m !== nothing
+          author_name = strip(m.captures[1])
+          author_email = m.captures[2]
+        else
+          author_name = full_author
+        end
+      end
+    catch
+    end
+  end
+
+  doc = extract_module_docstring(root_file)
+
+  if author_name != ""
+    println(
+      bold * green * author_name * reset * " " * dim * italic * "<$author_email>" * reset,
+    )
+
+  end
+  if pkg_version != ""
+    println(lowercase(pkg_name) * " " * bold * "v" * pkg_version * reset)
+  end
+  println()
+
+  if !isempty(doc)
+    println(dim * cyan * doc * reset)
+    println()
+  end
+
+  println("Usage: avicenna $command [options]")
+  println()
+
+  if !isempty(flags)
+    println("Options:")
+    for f in flags
+      parts = split(f, ":", limit = 2)
+      flag = parts[1]
+      desc = length(parts) > 1 ? parts[2] : ""
+      if !isempty(desc)
+        println(rpad("  $flag", 19), "$desc")
+      else
+        println("  $flag")
+      end
+    end
+    println(rpad("  --help", 19), "Show this help message and exit")
+  else
+    println("Options:")
+    println(rpad("  --help", 19), "Show this help message and exit")
+  end
+end
+
+####################################################################################################
+
 function print_help()
   # ANSI escape codes
   bold = "\e[1m"
@@ -212,9 +303,9 @@ function print_help()
   println("Usage: avicenna [options] <command> [args...]")
   println()
   println("Options:")
-  println("  --list              List available commands")
-  println("  --cache             Remove local cache")
-  println("  --completion SHELL  Generate shell completion script")
+  println("  --list           List available commands")
+  println("  --cache          Remove local cache")
+  println("  --completion     Generate shell completion script")
   println()
   println(bold * "Available commands:" * reset)
   for (cmd, _, _, _, _) in find_available_commands()
@@ -273,6 +364,9 @@ function dispatcher(args::Vector{String})
     for (cmd, _, _, _, cli_file) in commands
       if cmd == subcommand
         flags = extract_flags_from_cli_file(cli_file)
+        if !("--help" in flags)
+          push!(flags, "--help:Show this help message and exit")
+        end
         for f in flags
           println(f)
         end
@@ -336,6 +430,20 @@ function dispatcher(args::Vector{String})
 
   subcommand = remaining[1]
   cmd_args = remaining[2:end]
+
+  if subcommand != "" && ("--help" in cmd_args || "-h" in cmd_args)
+    commands = find_available_commands()
+    cmd_map = Dict(
+      cmd => (root_mod_name, cli_mod_name, root_file, cli_file) for
+      (cmd, root_mod_name, cli_mod_name, root_file, cli_file) in commands
+    )
+    if haskey(cmd_map, subcommand)
+      root_mod_name, cli_mod_name, root_file, cli_file = cmd_map[subcommand]
+      flags = extract_flags_from_cli_file(cli_file)
+      print_subcommand_help(subcommand, root_file, flags)
+      return 0
+    end
+  end
 
   commands = find_available_commands()
   cmd_map = Dict(
