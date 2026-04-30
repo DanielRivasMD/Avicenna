@@ -1,5 +1,7 @@
 feature enhancements:
 
+fetch version from submodule version
+
 Feature						Usefulness	Complexity	Description
 *Parameter validation		5			3			Automatically validate workflow configuration against expected types/ranges.
 *Progress logging			5			2			Built‑in progress bars or detailed logs for each stage (already partially via @info).
