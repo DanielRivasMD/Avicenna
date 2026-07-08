@@ -20,7 +20,7 @@ function run_demo(args = ARGS)
     arg_type = Float64
     default = 1.0
 
-    "--no-cache"
+    "--cache"
     action = :store_true
   end
 
@@ -30,7 +30,8 @@ function run_demo(args = ARGS)
   config =
     Dict("id" => parsed_args["id"], "data" => demo_data, "scale" => parsed_args["scale"])
 
-  cache = Flow.Cache("cache/demo", !parsed_args["no-cache"])
+  cache = Flow.Cache("cache/demo", parsed_args["cache"])
+
   result = Flow.run(demo, config, cache = cache)
 
   println("Analysis complete:")
