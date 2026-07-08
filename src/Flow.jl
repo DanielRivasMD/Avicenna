@@ -1,7 +1,6 @@
 ####################################################################################################
 
 module Flow
-# TODO: reverse cache logic => default: no cache
 
 ####################################################################################################
 
@@ -58,7 +57,7 @@ end
 
 ####################################################################################################
 
-function launch(flow::Config, config::Dict; cache = Cache("cache", true))
+function launch(flow::Config, config::Dict; cache = Cache("cache", false))
   @info "Starting workflow: $(flow.name)"
 
   outputs = Dict{String,Any}()
