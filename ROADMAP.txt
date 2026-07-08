@@ -1,5 +1,3 @@
-change cache option
-
 feature enhancements:
 
 fetch version from submodule version
@@ -40,6 +38,4 @@ weaknesses:
 
 
 ==================================================
-src/Flow.jl
-  line 4      TODO   reverse cache logic => default: no cache
 ==================================================
